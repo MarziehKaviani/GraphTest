@@ -1,0 +1,18 @@
+version: '3'
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: Graph
+      POSTGRES_USER: GraphDBUser
+      POSTGRES_PASSWORD: GR@p|-|D|3Us3rP@33w0rd
+    volumes:
+      - "btc_db_data:/var/lib/postgres/data"
+    expose:
+      - "5432"
+    ports:
+      - "5432:5432"
+
+volumes:
+  btc_db_data:

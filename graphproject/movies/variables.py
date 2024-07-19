@@ -1,0 +1,7 @@
+NAME_VERBOSE = "name"
+PRODUCTION_YEAR_VERBOSE = "Production year"
+DIRECTOR_VERBOSE = "Director"
+ACTORS_VERBOSE = "Actors"
+
+MOVIES_DIRECTOR_RELATED_NAME = "movies_director"
+MOVIES_ACTORS_RELATED_NAME = "movies_actors"
