@@ -5,6 +5,7 @@ from rest_framework.response import Response
 from .serializers import MovieSerializer, ArtistSerializer, EditActorsOfMovieSerializer
 import movies.variables as variables
 from .validators import CountryValidator, check_api_input_data, InputDataValidator
+from .filters import MoviesFilter
 
 
 class MoviesViewSet(viewsets.GenericViewSet,):
@@ -81,8 +82,13 @@ class MoviesViewSet(viewsets.GenericViewSet,):
         if not InputDataValidator().validate(request):
             return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
 
-        # Send data to serializer
-        queryset = self.get_queryset()
+        # Apply filtering
+        filterset = MoviesFilter(request.GET, queryset=self.get_queryset())
+        if not filterset.is_valid():
+            return Response(filterset.errors, status=status.HTTP_400_BAD_REQUEST)
+        
+        # Send filterd data to serializer
+        queryset = filterset.qs
         serializer = self.get_serializer(queryset, many=True)
         if not serializer.is_valid():
             return Response(
