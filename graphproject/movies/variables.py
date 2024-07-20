@@ -1,3 +1,5 @@
+from django.utils.translation import gettext_lazy as _
+
 NAME_VERBOSE = "Name"
 FULL_NAME_VERBOSE = "Full name"
 PRODUCTION_YEAR_VERBOSE = "Production year"

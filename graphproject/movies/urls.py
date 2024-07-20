@@ -5,4 +5,6 @@ router = DefaultRouter()
 router.register(r'movies', MoviesViewSet, basename='movie')
 router.register(r'artists', ArtistViewSet, basename='artist')
 
-urlpatterns = router.urls
+urlpatterns = [
+    # path()
+]

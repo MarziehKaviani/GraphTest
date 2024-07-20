@@ -4,7 +4,7 @@ from rest_framework.response import Response
 
 from .serializers import MovieSerializer, ArtistSerializer, EditActorsOfMovieSerializer
 import movies.variables as variables
-from .validators import CountryValidator, check_api_input_data, InputDataValidator
+from .validators import CountryValidator, InputDataValidator
 from .filters import MoviesFilter
 
 

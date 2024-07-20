@@ -45,7 +45,7 @@ class ArtistSerializer(serializers.ModelSerializer):
             The fields to include in the serialized representation.
     """
 
-    def get_queryset() -> QuerySet:
+    def get_queryset(self) -> QuerySet:
         return Artists.objects.all()
     
     class Meta:
