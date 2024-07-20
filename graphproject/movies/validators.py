@@ -5,7 +5,37 @@ from django.http.request import QueryDict
 from .utils import Country
 
 
-def check_api_input_data(request, required_fields=None, optional_fields=None):
+class InputDataValidator:
+    def __init__(self, request,  required_fields: list=None, optional_fields: list=None) -> None:
+        self.request_data: dict = request.data
+        self.required_fields = required_fields
+        self.optional_fields = optional_fields
+        self.data = dict()
+
+    def check_required_fields(self):
+        for field in self.required_fields:
+            if field not in self.request_data:
+                return False
+            self.request_data.pop(field)
+            self.data[field] = self.request_data[field]
+
+    def check_optional_fields(self):
+        for field in self.optional_fields:
+            if field not in self.request_data:
+                return False
+            self.request_data.pop(field)
+            self.data[field] = self.request_data[field]  
+
+    def validate(self):
+        if self.required_fields:
+            self.check_required_fields()
+        if self.optional_fields:
+            self.check_optional_fields()
+        if self.request_data != self.data:  # If no input data accepted, the self.data will be empty just as expected 
+            return False
+        return True
+
+def check_api_input_data(request, required_fields):
     """
     Check if the API input data contains the required and optional fields.
 
@@ -17,11 +47,8 @@ def check_api_input_data(request, required_fields=None, optional_fields=None):
     ----------
     request : django.http.request.HttpRequest
         The HTTP request object containing the input data.
-    required_fields : list, optional
+    required_fields : list
         A list of required field names that must be present in the request data.
-    optional_fields : list, optional
-        A list of optional field names that should be present in the request data.
-
     Returns
     -------
     bool
@@ -35,11 +62,6 @@ def check_api_input_data(request, required_fields=None, optional_fields=None):
             if field not in request_data:
                 return False
             data[field] = request_data[field]
-    if optional_fields:
-        for field in optional_fields:
-            if field not in request_data:
-                return False
-        data[field] = request_data[field]
     if type(request_data) == QueryDict:  # Type of data in django tests, is querydict
         request_data = request_data.dict()
     return data == request_data

@@ -15,6 +15,9 @@ class Artists(models.Model):
         max_length=2,  # IsoAlpha2 stores in db
         verbose_name=_(variables.COUNTRY_VERBOSE)
     )
+    dob = models.DateField(  # TODO add val for date maximum
+        verbose_name=_(variables.DATE_OF_BIRTH_VERBOSE),   
+    )
 
 
 class Movies(models.Model):
