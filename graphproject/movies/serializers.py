@@ -51,3 +51,7 @@ class ArtistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Artists
         fields = '__all__'
+
+
+class EditActorsOfMovieSerializer(serializers.Serializer):
+    actor_id = serializers.CharField(max_length=5)

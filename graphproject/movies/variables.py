@@ -13,6 +13,7 @@ ACTORS = "actors"
 PRODUCTION_YEAR = "production_year"
 FULL_NAME = "full_name"
 DOB = "dob"
+ACTOR_ID = "actor_id"
 
 MOVIES_DIRECTOR_RELATED_NAME = "movies_director"
 MOVIES_ACTORS_RELATED_NAME = "movies_actors"

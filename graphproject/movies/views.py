@@ -2,7 +2,7 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .serializers import MovieSerializer, ArtistSerializer
+from .serializers import MovieSerializer, ArtistSerializer, EditActorsOfMovieSerializer
 import movies.variables as variables
 from .validators import CountryValidator, check_api_input_data, InputDataValidator
 
@@ -14,8 +14,13 @@ class MoviesViewSet(viewsets.GenericViewSet,):
     This viewset provides `list`, `retrieve`, and `show_preview` actions for Movies objects.
     """
     queryset = MovieSerializer.get_queryset()
-    serializer_class = MovieSerializer
 
+    def get_serializer_class(self):
+        if self.action in ['remove_actor', 'add_actor']:
+            return EditActorsOfMovieSerializer
+        else:
+            return MovieSerializer
+        
     @action(detail=False, methods=[variables.POST])
     def create(self, request):
         """
@@ -218,6 +223,98 @@ class MoviesViewSet(viewsets.GenericViewSet,):
         return Response(
             data={"detail": "Movie deleted successfully"},
             status=status.HTTP_204_NO_CONTENT,
+        )
+    
+    @action(detail=True, methods=[variables.POST])
+    def add_actor(self, request, pk=None):
+        """
+        Add an actor to a specific movie's actors list.
+
+        Parameters
+        ----------
+        request : Request
+            The HTTP request object.
+        pk : int, optional
+            The primary key of the movie.
+
+        Returns
+        -------
+        Response
+            A response object indicating success or failure, HTTP status code.
+        """
+        # Check input data
+        required_fields = [variables.ACTOR_ID]
+        validator = InputDataValidator(request, required_fields=required_fields)
+        if not validator.validate():
+            return Response(status=status.HTTP_400_BAD_REQUEST, data=variables.INVALID_INPUT_DATA)
+
+        # Add actor
+        actor_id = request.data.get(variables.ACTOR_ID)
+        movie = self.get_queryset().filter(pk=pk).first()
+        if not movie:
+            return Response(
+                data={"detail": "Movie not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        actor = ArtistSerializer().get_queryset().filter(pk=actor_id).first()
+        if not actor:
+            return Response(
+                data={"detail": "Actor not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        movie.actors.add(actor)
+        movie.save()
+        return Response(
+            data={"detail": "Actor added successfully."},
+            status=status.HTTP_200_OK
+        )
+
+    @action(detail=True, methods=[variables.POST])
+    def remove_actor(self, request, pk=None):
+        """
+        Remove an actor from a specific movie's actors list.
+
+        Parameters
+        ----------
+        request : Request
+            The HTTP request object.
+        pk : int, optional
+            The primary key of the movie.
+
+        Returns
+        -------
+        Response
+            A response object indicating success or failure, HTTP status code.
+        """
+        # Check input data
+        required_fields = [variables.ACTOR_ID]
+        validator = InputDataValidator(request, required_fields=required_fields)
+        if not validator.validate():
+            return Response(status=status.HTTP_400_BAD_REQUEST, data=variables.INVALID_INPUT_DATA)
+
+        # Remove actor
+        actor_id = request.data.get(variables.ACTOR_ID)
+        movie = self.get_queryset().filter(pk=pk).first()
+        if not movie:
+            return Response(
+                data={"detail": "Movie not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        actor = ArtistSerializer().get_queryset().filter(pk=actor_id).first()
+        if not actor:
+            return Response(
+                data={"detail": "Actor not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        movie.actors.remove(actor)
+        movie.save()
+        return Response(
+            data={"detail": "Actor removed successfully."},
+            status=status.HTTP_200_OK
         )
 
 

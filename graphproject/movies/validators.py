@@ -6,13 +6,51 @@ from .utils import Country
 
 
 class InputDataValidator:
+    """
+    Validator for checking required and optional fields in API input data.
+
+    This class validates whether the input data in a request contains all the required fields 
+    and optionally checks for optional fields. It is used to validate the input data in API requests.
+
+    Attributes
+    ----------
+    request_data : dict
+        The data from the request to validate.
+    required_fields : list
+        A list of required field names that must be present in the request data.
+    optional_fields : list
+        A list of optional field names that should be present in the request data.
+    data : dict
+        A dictionary to store the validated data.
+    """
+
     def __init__(self, request,  required_fields: list=None, optional_fields: list=None) -> None:
+        """
+        Initialize the InputDataValidator with request data, required fields, and optional fields.
+
+        Parameters
+        ----------
+        request : django.http.request.HttpRequest
+            The HTTP request object containing the input data.
+        required_fields : list, optional
+            A list of required field names that must be present in the request data.
+        optional_fields : list, optional
+            A list of optional field names that should be present in the request data.
+        """
         self.request_data: dict = request.data
         self.required_fields = required_fields
         self.optional_fields = optional_fields
         self.data = dict()
 
     def check_required_fields(self):
+        """
+        Check if the request data contains all the required fields.
+
+        Returns
+        -------
+        bool
+            Returns True if all required fields are present in the request data, False otherwise.
+        """
         for field in self.required_fields:
             if field not in self.request_data:
                 return False
@@ -20,6 +58,14 @@ class InputDataValidator:
             self.data[field] = self.request_data[field]
 
     def check_optional_fields(self):
+        """
+        Check if the request data contains all the optional fields.
+
+        Returns
+        -------
+        bool
+            Returns True if all optional fields are present in the request data, False otherwise.
+        """
         for field in self.optional_fields:
             if field not in self.request_data:
                 return False
@@ -27,6 +73,14 @@ class InputDataValidator:
             self.data[field] = self.request_data[field]  
 
     def validate(self):
+        """
+        Validate the input data by checking required and optional fields.
+
+        Returns
+        -------
+        bool
+            Returns True if the input data contains all the required and optional fields, False otherwise.
+        """
         if self.required_fields:
             self.check_required_fields()
         if self.optional_fields:
@@ -34,37 +88,6 @@ class InputDataValidator:
         if self.request_data != self.data:  # If no input data accepted, the self.data will be empty just as expected 
             return False
         return True
-
-def check_api_input_data(request, required_fields):
-    """
-    Check if the API input data contains the required and optional fields.
-
-    This function checks whether the input data in the request contains all the
-    required fields and optionally checks for optional fields. It is used to
-    validate the input data in API requests.
-
-    Parameters
-    ----------
-    request : django.http.request.HttpRequest
-        The HTTP request object containing the input data.
-    required_fields : list
-        A list of required field names that must be present in the request data.
-    Returns
-    -------
-    bool
-        Returns True if the input data contains all the required and optional fields,
-        False otherwise.
-    """
-    data = dict()
-    request_data = request.data
-    if required_fields:
-        for field in required_fields:
-            if field not in request_data:
-                return False
-            data[field] = request_data[field]
-    if type(request_data) == QueryDict:  # Type of data in django tests, is querydict
-        request_data = request_data.dict()
-    return data == request_data
 
 
 class YearValidator:
