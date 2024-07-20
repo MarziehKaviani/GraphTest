@@ -1,7 +1,15 @@
-NAME_VERBOSE = "name"
+NAME_VERBOSE = "Name"
+FULL_NAME_VERBOSE = "Full name"
 PRODUCTION_YEAR_VERBOSE = "Production year"
 DIRECTOR_VERBOSE = "Director"
+COUNTRY_VERBOSE = "Country"
 ACTORS_VERBOSE = "Actors"
 
 MOVIES_DIRECTOR_RELATED_NAME = "movies_director"
 MOVIES_ACTORS_RELATED_NAME = "movies_actors"
+
+GET = "GET"
+PUT = "PUT"
+PATCH = "PATCH"
+POST = "POST"
+DELETE = "DELETE"

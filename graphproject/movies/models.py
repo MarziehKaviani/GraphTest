@@ -7,9 +7,13 @@ from .validators import YearValidator
 
 
 class Artists(models.Model):
-    name = models.CharField(
+    full_name = models.CharField(
         max_length=255,
         verbose_name=_(variables.NAME_VERBOSE),
+    )
+    country = models.CharField(
+        max_length=2,  # IsoAlpha2 stores in db
+        verbose_name=_(variables.COUNTRY_VERBOSE)
     )
 
 
