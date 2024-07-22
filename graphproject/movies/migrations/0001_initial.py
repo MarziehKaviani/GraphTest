@@ -28,7 +28,7 @@ class Migration(migrations.Migration):
             fields=[
                 ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=255, verbose_name='Name')),
-                ('production_year', models.IntegerField(validators=[django.core.validators.MinValueValidator(1984), movies.validators.YearValidator.max_year_validator], verbose_name='Production year')),
+                ('production_year', models.IntegerField(validators=[django.core.validators.MinValueValidator(1888), movies.validators.YearValidator.max_year_validator], verbose_name='Production year')),
                 ('actors', models.ManyToManyField(related_name='movies_actors', to='movies.artists', verbose_name='Actors')),
                 ('director', models.OneToOneField(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='movies_director', to='movies.artists', verbose_name='Director')),
             ],

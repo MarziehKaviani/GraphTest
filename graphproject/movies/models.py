@@ -15,8 +15,9 @@ class Artists(models.Model):
         max_length=2,  # IsoAlpha2 stores in db
         verbose_name=_(variables.COUNTRY_VERBOSE)
     )
-    dob = models.DateField(  # TODO add val for date maximum
+    dob = models.DateField( 
         verbose_name=_(variables.DATE_OF_BIRTH_VERBOSE),   
+        # validators=[YearValidator.max_year_validator] # TODO uncomment this
     )
 
 
@@ -27,7 +28,7 @@ class Movies(models.Model):
     )
     production_year = models.IntegerField(
         verbose_name=_(variables.PRODUCTION_YEAR_VERBOSE),
-        validators=[MinValueValidator(1984), YearValidator.max_year_validator]
+        validators=[MinValueValidator(1888), YearValidator.max_year_validator]  # The first movie producted at 1888
     )
     director = models.OneToOneField(
         Artists,

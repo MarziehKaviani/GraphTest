@@ -8,7 +8,7 @@ from .validators import CountryValidator, InputDataValidator
 from .filters import MoviesFilter
 
 
-class MoviesViewSet(viewsets.GenericViewSet,):
+class MoviesViewSet(viewsets.GenericViewSet):
     """
     API endpoint that allows operations on Movies.
 
@@ -22,8 +22,7 @@ class MoviesViewSet(viewsets.GenericViewSet,):
         else:
             return MovieSerializer
         
-    @action(detail=False, methods=[variables.POST])
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         """
         Create a new movie instance.
 
@@ -42,7 +41,7 @@ class MoviesViewSet(viewsets.GenericViewSet,):
 
         # Check input data
         required_fields = [variables.NAME, variables.PRODUCTION_YEAR, variables.DIRECTOR, variables.ACTORS]
-        if not InputDataValidator().validate(request, required_fields):
+        if not InputDataValidator(request, required_fields=required_fields).validate():
             return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
 
         # Send data to serializer
@@ -50,8 +49,8 @@ class MoviesViewSet(viewsets.GenericViewSet,):
         if not serializer.is_valid():
             return Response(
                 data={variables.DETAILS: serializer.errors},
-                is_exception=True,
-                http_status_code=status.HTTP_400_BAD_REQUEST,
+                exception=True,
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
         # Create Movie
@@ -61,8 +60,7 @@ class MoviesViewSet(viewsets.GenericViewSet,):
             status=status.HTTP_201_CREATED
         )
     
-    @action(detail=False, methods=[variables.GET])
-    def list(self, request):
+    def list(self, request, *args, **kwargs):
         """
         Retrieve a list of all movies.
 
@@ -79,7 +77,7 @@ class MoviesViewSet(viewsets.GenericViewSet,):
             A response object containing the list of movies, HTTP status code, and business status code.
         """
         # Check input data
-        if not InputDataValidator().validate(request):
+        if not InputDataValidator(request).validate():
             return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
 
         # Apply filtering
@@ -90,22 +88,15 @@ class MoviesViewSet(viewsets.GenericViewSet,):
         # Send filterd data to serializer
         queryset = filterset.qs
         serializer = self.get_serializer(queryset, many=True)
-        if not serializer.is_valid():
-            return Response(
-                data={variables.DETAILS: serializer.errors},
-                is_exception=True,
-                http_status_code=status.HTTP_400_BAD_REQUEST,
-            )
         
         # Return movies list
         return Response(
             data=serializer.data,
-            is_exception=False,
-            http_status_code=status.HTTP_200_OK,
+            exception=False,
+            status=status.HTTP_200_OK,
             )
 
-    @action(detail=True, methods=[variables.GET])
-    def retrieve(self, request, pk=None):
+    def retrieve(self, request, pk=None, *args, **kwargs):
         """
         Retrieve the details of a specific movie.
 
@@ -124,23 +115,17 @@ class MoviesViewSet(viewsets.GenericViewSet,):
             A response object containing the movie details, HTTP status code, and business status code.
         """
         # Check input data
-        if not InputDataValidator().validate(request):
+        if not InputDataValidator(request).validate():
             return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
 
         # Send data to serializer
         instance = self.get_queryset().filter(pk=pk).first()
         if not instance:
             return Response(
-                data={"detail": "Artist not found."},
+                data={variables.DETAILS: variables.MOVIE_NOT_FOUND},
                 status=status.HTTP_404_NOT_FOUND
             )
         serializer = self.get_serializer(instance)
-        if not serializer.is_valid():
-            return Response(
-                data={variables.DETAILS: serializer.errors},
-                is_exception=True,
-                http_status_code=status.HTTP_400_BAD_REQUEST,
-            )
         
         # Retrieve
         return Response(
@@ -148,8 +133,7 @@ class MoviesViewSet(viewsets.GenericViewSet,):
             status=status.HTTP_200_OK
         )
 
-    @action(detail=True, methods=[variables.PUT, variables.PATCH])
-    def update(self, request, pk=None):
+    def update(self, request, pk=None, *args, **kwargs):
         """
         Update a movie instance.
 
@@ -168,35 +152,40 @@ class MoviesViewSet(viewsets.GenericViewSet,):
             A response object containing the updated movie details, HTTP status code, and business status code.
         """
         # Check input data
-        optional_fields = [variables.NAME, variables.PRODUCTION_YEAR, variables.DIRECTOR, variables.ACTORS]
-        if not InputDataValidator().validate(request, optional_fields=optional_fields):
-            return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
+        fields = [variables.NAME, variables.PRODUCTION_YEAR, variables.DIRECTOR, variables.ACTORS]
+
+        partial=request.method==variables.PATCH
+        if partial:
+            if not InputDataValidator(request=request, optional_fields=fields).validate():
+                return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
+        else:
+            if not InputDataValidator(request=request, required_fields=fields).validate():
+                return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
 
         # Send data to serializer
-        partial = request.method == 'PATCH'
         instance = self.get_queryset().filter(pk=pk).first()
         if not instance:
             return Response(
-                data={"detail": "Movie not found."},
+                data={variables.DETAILS: variables.MOVIE_NOT_FOUND},
                 status=status.HTTP_404_NOT_FOUND
             )
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         if not serializer.is_valid():
             return Response(
                 data={variables.DETAILS: serializer.errors},
-                is_exception=True,
-                http_status_code=status.HTTP_400_BAD_REQUEST,
+                exception=True,
+                status=status.HTTP_400_BAD_REQUEST,
             )
         
         # Update
-        self.perform_update(serializer)
+        serializer.save()
         return Response(
             data=serializer.data,
             status=status.HTTP_200_OK,
         )
 
-    @action(detail=True, methods=[variables.DELETE])
-    def delete(self, request, pk=None):
+    def destroy(self, request, pk=None, *args, **kwargs):
+
         """
         Delete a movie instance.
 
@@ -215,19 +204,19 @@ class MoviesViewSet(viewsets.GenericViewSet,):
             A response object indicating success or failure, HTTP status code, and business status code.
         """
         # Check input data
-        if not InputDataValidator().validate(request):
+        if not InputDataValidator(request).validate():
             return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
 
         # Delete movie
         instance = self.get_queryset().filter(pk=pk).first()
         if not instance:
             return Response(
-                data={"detail": "Movie not found."},
+                data={variables.DETAILS: variables.MOVIE_NOT_FOUND},
                 status=status.HTTP_404_NOT_FOUND
             )
-        self.perform_destroy(instance)
+        instance.delete()
         return Response(
-            data={"detail": "Movie deleted successfully"},
+            data={variables.DETAILS: "Movie deleted successfully"},
             status=status.HTTP_204_NO_CONTENT,
         )
     
@@ -259,21 +248,21 @@ class MoviesViewSet(viewsets.GenericViewSet,):
         movie = self.get_queryset().filter(pk=pk).first()
         if not movie:
             return Response(
-                data={"detail": "Movie not found."},
+                data={variables.DETAILS: variables.MOVIE_NOT_FOUND},
                 status=status.HTTP_404_NOT_FOUND
             )
 
         actor = ArtistSerializer().get_queryset().filter(pk=actor_id).first()
         if not actor:
             return Response(
-                data={"detail": "Actor not found."},
+                data={variables.DETAILS: variables.ARTIST_NOT_FOUND},
                 status=status.HTTP_404_NOT_FOUND
             )
 
         movie.actors.add(actor)
         movie.save()
         return Response(
-            data={"detail": "Actor added successfully."},
+            data={variables.DETAILS: "Actor added successfully."},
             status=status.HTTP_200_OK
         )
 
@@ -305,21 +294,27 @@ class MoviesViewSet(viewsets.GenericViewSet,):
         movie = self.get_queryset().filter(pk=pk).first()
         if not movie:
             return Response(
-                data={"detail": "Movie not found."},
+                data={variables.DETAILS: variables.MOVIE_NOT_FOUND},
                 status=status.HTTP_404_NOT_FOUND
             )
 
         actor = ArtistSerializer().get_queryset().filter(pk=actor_id).first()
         if not actor:
             return Response(
-                data={"detail": "Actor not found."},
+                data={variables.DETAILS: variables.ARTIST_NOT_FOUND},
+                status=status.HTTP_404_NOT_FOUND
+            )
+        
+        if not movie.actors.filter(pk=actor.pk).exists():
+            return Response(
+                data={variables.DETAILS: "The selected actor is not one of the movie's actors"},
                 status=status.HTTP_404_NOT_FOUND
             )
 
         movie.actors.remove(actor)
         movie.save()
         return Response(
-            data={"detail": "Actor removed successfully."},
+            data={variables.DETAILS: "Actor removed successfully."},
             status=status.HTTP_200_OK
         )
 
@@ -333,8 +328,7 @@ class ArtistViewSet(viewsets.GenericViewSet):
     queryset = ArtistSerializer().get_queryset()
     serializer_class = ArtistSerializer
 
-    @action(detail=False, methods=[variables.GET])
-    def list(self, request):
+    def list(self, request, *args, **kwargs):
         """
         Retrieve a list of all artists.
 
@@ -351,18 +345,12 @@ class ArtistViewSet(viewsets.GenericViewSet):
             A response object containing the list of artists, HTTP status code.
         """
         # Check input data
-        if not InputDataValidator().validate(request):
+        if not InputDataValidator(request).validate():
             return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
 
         # Send data to serializer
         queryset = self.get_queryset()
-        serializer = self.get_serializer(queryset, many=True)
-        if not serializer.is_valid():
-            return Response(
-                data={variables.DETAILS: serializer.errors},
-                is_exception=True,
-                http_status_code=status.HTTP_400_BAD_REQUEST,
-            )
+        serializer = self.get_serializer_class()(queryset, many=True)
         
         # Return Artists List
         return Response(
@@ -370,8 +358,7 @@ class ArtistViewSet(viewsets.GenericViewSet):
             status=status.HTTP_200_OK
         )
 
-    @action(detail=True, methods=[variables.GET])
-    def retrieve(self, request, pk=None):
+    def retrieve(self, request, pk=None, *args, **kwargs):
         """
         Retrieve the details of a specific artist.
 
@@ -390,23 +377,17 @@ class ArtistViewSet(viewsets.GenericViewSet):
             A response object containing the artist details, HTTP status code.
         """
         # Check input data
-        if not InputDataValidator().validate(request):
+        if not InputDataValidator(request).validate():
             return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
 
         # Send data to serializer
         instance = self.get_queryset().filter(pk=pk).first()
         if not instance:
             return Response(
-                data={"detail": "Artist not found."},
+                data={variables.DETAILS: "Artist not found."},
                 status=status.HTTP_404_NOT_FOUND
             )
         serializer = self.get_serializer(instance)
-        if not serializer.is_valid():
-            return Response(
-                data={variables.DETAILS: serializer.errors},
-                is_exception=True,
-                http_status_code=status.HTTP_400_BAD_REQUEST,
-            )
         
         # Retrieve artist
         return Response(
@@ -414,8 +395,7 @@ class ArtistViewSet(viewsets.GenericViewSet):
             status=status.HTTP_200_OK
         )
 
-    @action(detail=False, methods=[variables.POST])
-    def create(self, request):
+    def create(self, request, *args, **kwargs):
         """
         Create a new artist instance.
 
@@ -433,7 +413,12 @@ class ArtistViewSet(viewsets.GenericViewSet):
         """
         # Check input data
         required_fields = [variables.FULL_NAME, variables.COUNTRY, variables.DOB]
-        if not InputDataValidator().validate(request, required_fields=required_fields):
+        
+        if variables.COUNTRY in request.data:
+            if not CountryValidator().is_valid(request.data[variables.COUNTRY]):
+                return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
+            
+        if not InputDataValidator(request=request, required_fields=required_fields).validate():
             return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
        
         # Send data to serializer
@@ -442,19 +427,18 @@ class ArtistViewSet(viewsets.GenericViewSet):
         if not serializer.is_valid():
             return Response(
                 data={variables.DETAILS: serializer.errors},
-                is_exception=True,
-                http_status_code=status.HTTP_400_BAD_REQUEST,
+                exception=True,
+                status=status.HTTP_400_BAD_REQUEST,
             )
         
-        #  Create
+        # Create
         serializer.save()
         return Response(
             data=serializer.data,
             status=status.HTTP_201_CREATED
         )
 
-    @action(detail=True, methods=[variables.PUT, variables.PATCH])
-    def update(self, request, pk=None):
+    def update(self, request, pk=None, *args, **kwargs):
         """
         Update an artist instance.
 
@@ -473,24 +457,32 @@ class ArtistViewSet(viewsets.GenericViewSet):
             A response object containing the updated artist details, HTTP status code.
         """
         # Check input data
-        optional_fields = [variables.FULL_NAME, variables.COUNTRY, variables.DOB]
-        if not InputDataValidator().validate(request, optional_fields=optional_fields):
-            return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
+        fields = [variables.FULL_NAME, variables.COUNTRY, variables.DOB]
+        if variables.COUNTRY in request.data:
+            if not CountryValidator().is_valid(request.data[variables.COUNTRY]):
+                return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
+            
+        partial=request.method==variables.PATCH
+        if partial:
+            if not InputDataValidator(request=request, optional_fields=fields).validate():
+                return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
+        else:
+            if not InputDataValidator(request=request, required_fields=fields).validate():
+                return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
 
         # Send data to serializer
-        partial = request.method == 'PATCH'
         instance = self.get_queryset().filter(pk=pk).first()
         if not instance:
             return Response(
-                data={"detail": "Artist not found."},
+                data={variables.DETAILS: "Artist not found."},
                 status=status.HTTP_404_NOT_FOUND
             )
         serializer = self.get_serializer(instance, data=request.data, partial=partial)
         if not serializer.is_valid():
             return Response(
                 data={variables.DETAILS: serializer.errors},
-                is_exception=True,
-                http_status_code=status.HTTP_400_BAD_REQUEST,
+                status=status.HTTP_400_BAD_REQUEST,
+                exception=True
             )
         
         # Update
@@ -500,8 +492,7 @@ class ArtistViewSet(viewsets.GenericViewSet):
             status=status.HTTP_200_OK
         )
 
-    @action(detail=True, methods=[variables.DELETE])
-    def delete(self, request, pk=None):
+    def destroy(self, request, pk=None, *args, **kwargs):
         """
         Delete an artist instance.
 
@@ -520,18 +511,18 @@ class ArtistViewSet(viewsets.GenericViewSet):
             A response object indicating success or failure, HTTP status code.
         """
         # Check input data
-        if not InputDataValidator().validate(request):
+        if not InputDataValidator(request).validate():
             return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
 
         # Delete Artist
         instance = self.get_queryset().filter(pk=pk).first()
         if not instance:
             return Response(
-                data={"detail": "Artist not found."},
+                data={variables.DETAILS: "Artist not found."},
                 status=status.HTTP_404_NOT_FOUND
             )
         instance.delete()
         return Response(
-            data={"detail": "Artist deleted successfully"},
+            data={variables.DETAILS: "Artist deleted successfully"},
             status=status.HTTP_204_NO_CONTENT
         )

@@ -16,6 +16,7 @@ PRODUCTION_YEAR = "production_year"
 FULL_NAME = "full_name"
 DOB = "dob"
 ACTOR_ID = "actor_id"
+DETAILS = "details"
 
 MOVIES_DIRECTOR_RELATED_NAME = "movies_director"
 MOVIES_ACTORS_RELATED_NAME = "movies_actors"
@@ -27,3 +28,6 @@ POST = "POST"
 DELETE = "DELETE"
 
 INVALID_INPUT_DATA = _("Invalid input data")
+MOVIE_NOT_FOUND = _("Movie not found.")
+ARTIST_NOT_FOUND = _("Artist not found.")
+

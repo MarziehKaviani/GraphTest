@@ -1,4 +1,6 @@
 import datetime
+import copy
+
 from django.core.validators import MaxValueValidator
 from django.http.request import QueryDict
 
@@ -36,8 +38,9 @@ class InputDataValidator:
             A list of required field names that must be present in the request data.
         optional_fields : list, optional
             A list of optional field names that should be present in the request data.
-        """
-        self.request_data: dict = request.data
+        """ 
+        self.request = request
+        self.request_data: dict = copy.deepcopy(request.data)
         self.required_fields = required_fields
         self.optional_fields = optional_fields
         self.data = dict()
@@ -54,8 +57,8 @@ class InputDataValidator:
         for field in self.required_fields:
             if field not in self.request_data:
                 return False
-            self.request_data.pop(field)
             self.data[field] = self.request_data[field]
+            self.request_data.pop(field)
 
     def check_optional_fields(self):
         """
@@ -66,11 +69,11 @@ class InputDataValidator:
         bool
             Returns True if all optional fields are present in the request data, False otherwise.
         """
-        for field in self.optional_fields:
-            if field not in self.request_data:
+        for field in self.request.data:
+            if field not in self.optional_fields:
                 return False
-            self.request_data.pop(field)
             self.data[field] = self.request_data[field]  
+            self.request_data.pop(field)
 
     def validate(self):
         """
@@ -85,7 +88,7 @@ class InputDataValidator:
             self.check_required_fields()
         if self.optional_fields:
             self.check_optional_fields()
-        if self.request_data != self.data:  # If no input data accepted, the self.data will be empty just as expected 
+        if self.request.data != self.data:  # If no input data accepted, the self.data will be empty just as expected 
             return False
         return True
 
@@ -96,7 +99,8 @@ class YearValidator:
 
     This validator checks if a given year is less than or equal to the current year.
     """
-    def current_year(self):
+    @staticmethod
+    def current_year():
         """
         Get the current year.
 
@@ -107,7 +111,8 @@ class YearValidator:
         """
         return datetime.date.today().year
 
-    def max_year_validator(self, value):
+    @staticmethod
+    def max_year_validator(value):
         """
         Validate that the given year is less than or equal to the current year.
 
@@ -118,11 +123,15 @@ class YearValidator:
 
         Returns
         -------
-        django.core.validators.MaxValueValidator
-            A MaxValueValidator instance configured to validate the given year.
+        None
+
+        Raises
+        ------
+        ValidationError
+            If the value is greater than the current year.
         """
-        return MaxValueValidator(self.current_year())(value)    
- 
+        MaxValueValidator(YearValidator.current_year())(value)
+
 
 class CountryValidator:
     """
@@ -130,7 +139,7 @@ class CountryValidator:
 
     This validator checks if a given country code is present in the list of ISO Alpha-2 country codes.
     """
-    def is_valid(value):
+    def is_valid(self, value):
         """
         Validate if the given country code is valid.
 
