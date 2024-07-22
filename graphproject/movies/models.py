@@ -1,8 +1,9 @@
+from django.core.validators import MinValueValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
-from django.core.validators import MinValueValidator
 
 import movies.variables as variables
+
 from .validators import YearValidator
 
 
@@ -15,8 +16,8 @@ class Artists(models.Model):
         max_length=2,  # IsoAlpha2 stores in db
         verbose_name=_(variables.COUNTRY_VERBOSE)
     )
-    dob = models.DateField( 
-        verbose_name=_(variables.DATE_OF_BIRTH_VERBOSE),   
+    dob = models.DateField(
+        verbose_name=_(variables.DATE_OF_BIRTH_VERBOSE),
         # validators=[YearValidator.max_year_validator] # TODO uncomment this
     )
 
@@ -28,7 +29,8 @@ class Movies(models.Model):
     )
     production_year = models.IntegerField(
         verbose_name=_(variables.PRODUCTION_YEAR_VERBOSE),
-        validators=[MinValueValidator(1888), YearValidator.max_year_validator]  # The first movie producted at 1888
+        # The first movie producted at 1888
+        validators=[MinValueValidator(1888), YearValidator.max_year_validator]
     )
     director = models.OneToOneField(
         Artists,
@@ -42,4 +44,3 @@ class Movies(models.Model):
         related_name=variables.MOVIES_ACTORS_RELATED_NAME,
         verbose_name=_(variables.ACTORS_VERBOSE)
     )
-

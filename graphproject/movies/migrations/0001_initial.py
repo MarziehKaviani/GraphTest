@@ -2,8 +2,9 @@
 
 import django.core.validators
 import django.db.models.deletion
-import movies.validators
 from django.db import migrations, models
+
+import movies.validators
 
 
 class Migration(migrations.Migration):
@@ -17,7 +18,8 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Artists',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('full_name', models.CharField(max_length=255, verbose_name='Name')),
                 ('country', models.CharField(max_length=2, verbose_name='Country')),
                 ('dob', models.DateField(verbose_name='Date of birth')),
@@ -26,11 +28,15 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Movies',
             fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id', models.BigAutoField(auto_created=True,
+                 primary_key=True, serialize=False, verbose_name='ID')),
                 ('name', models.CharField(max_length=255, verbose_name='Name')),
-                ('production_year', models.IntegerField(validators=[django.core.validators.MinValueValidator(1888), movies.validators.YearValidator.max_year_validator], verbose_name='Production year')),
-                ('actors', models.ManyToManyField(related_name='movies_actors', to='movies.artists', verbose_name='Actors')),
-                ('director', models.OneToOneField(null=True, on_delete=django.db.models.deletion.SET_NULL, related_name='movies_director', to='movies.artists', verbose_name='Director')),
+                ('production_year', models.IntegerField(validators=[django.core.validators.MinValueValidator(
+                    1888), movies.validators.YearValidator.max_year_validator], verbose_name='Production year')),
+                ('actors', models.ManyToManyField(related_name='movies_actors',
+                 to='movies.artists', verbose_name='Actors')),
+                ('director', models.OneToOneField(null=True, on_delete=django.db.models.deletion.SET_NULL,
+                 related_name='movies_director', to='movies.artists', verbose_name='Director')),
             ],
         ),
     ]

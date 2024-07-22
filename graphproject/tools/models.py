@@ -8,6 +8,6 @@ class EndpointCallCount(models.Model):
 
     class Meta:
         unique_together = ('endpoint', 'method')
-        
+
     def __str__(self):
         return f"{self.endpoint}: {self.call_count}"

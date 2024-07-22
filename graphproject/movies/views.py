@@ -2,10 +2,12 @@ from rest_framework import mixins, status, viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-from .serializers import MovieSerializer, ArtistSerializer, EditActorsOfMovieSerializer
 import movies.variables as variables
-from .validators import CountryValidator, InputDataValidator
+
 from .filters import MoviesFilter
+from .serializers import (ArtistSerializer, EditActorsOfMovieSerializer,
+                          MovieSerializer)
+from .validators import CountryValidator, InputDataValidator
 
 
 class MoviesViewSet(viewsets.GenericViewSet):
@@ -21,7 +23,7 @@ class MoviesViewSet(viewsets.GenericViewSet):
             return EditActorsOfMovieSerializer
         else:
             return MovieSerializer
-        
+
     def create(self, request, *args, **kwargs):
         """
         Create a new movie instance.
@@ -40,7 +42,8 @@ class MoviesViewSet(viewsets.GenericViewSet):
         """
 
         # Check input data
-        required_fields = [variables.NAME, variables.PRODUCTION_YEAR, variables.DIRECTOR, variables.ACTORS]
+        required_fields = [
+            variables.NAME, variables.PRODUCTION_YEAR, variables.DIRECTOR, variables.ACTORS]
         if not InputDataValidator(request, required_fields=required_fields).validate():
             return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
 
@@ -59,7 +62,7 @@ class MoviesViewSet(viewsets.GenericViewSet):
             data=serializer.data,
             status=status.HTTP_201_CREATED
         )
-    
+
     def list(self, request, *args, **kwargs):
         """
         Retrieve a list of all movies.
@@ -84,17 +87,17 @@ class MoviesViewSet(viewsets.GenericViewSet):
         filterset = MoviesFilter(request.GET, queryset=self.get_queryset())
         if not filterset.is_valid():
             return Response(filterset.errors, status=status.HTTP_400_BAD_REQUEST)
-        
+
         # Send filterd data to serializer
         queryset = filterset.qs
         serializer = self.get_serializer(queryset, many=True)
-        
+
         # Return movies list
         return Response(
             data=serializer.data,
             exception=False,
             status=status.HTTP_200_OK,
-            )
+        )
 
     def retrieve(self, request, pk=None, *args, **kwargs):
         """
@@ -126,7 +129,7 @@ class MoviesViewSet(viewsets.GenericViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
         serializer = self.get_serializer(instance)
-        
+
         # Retrieve
         return Response(
             data=serializer.data,
@@ -152,9 +155,10 @@ class MoviesViewSet(viewsets.GenericViewSet):
             A response object containing the updated movie details, HTTP status code, and business status code.
         """
         # Check input data
-        fields = [variables.NAME, variables.PRODUCTION_YEAR, variables.DIRECTOR, variables.ACTORS]
+        fields = [variables.NAME, variables.PRODUCTION_YEAR,
+                  variables.DIRECTOR, variables.ACTORS]
 
-        partial=request.method==variables.PATCH
+        partial = request.method == variables.PATCH
         if partial:
             if not InputDataValidator(request=request, optional_fields=fields).validate():
                 return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
@@ -169,14 +173,15 @@ class MoviesViewSet(viewsets.GenericViewSet):
                 data={variables.DETAILS: variables.MOVIE_NOT_FOUND},
                 status=status.HTTP_404_NOT_FOUND
             )
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=partial)
         if not serializer.is_valid():
             return Response(
                 data={variables.DETAILS: serializer.errors},
                 exception=True,
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         # Update
         serializer.save()
         return Response(
@@ -185,7 +190,6 @@ class MoviesViewSet(viewsets.GenericViewSet):
         )
 
     def destroy(self, request, pk=None, *args, **kwargs):
-
         """
         Delete a movie instance.
 
@@ -219,7 +223,7 @@ class MoviesViewSet(viewsets.GenericViewSet):
             data={variables.DETAILS: "Movie deleted successfully"},
             status=status.HTTP_204_NO_CONTENT,
         )
-    
+
     @action(detail=True, methods=[variables.POST])
     def add_actor(self, request, pk=None):
         """
@@ -239,7 +243,8 @@ class MoviesViewSet(viewsets.GenericViewSet):
         """
         # Check input data
         required_fields = [variables.ACTOR_ID]
-        validator = InputDataValidator(request, required_fields=required_fields)
+        validator = InputDataValidator(
+            request, required_fields=required_fields)
         if not validator.validate():
             return Response(status=status.HTTP_400_BAD_REQUEST, data=variables.INVALID_INPUT_DATA)
 
@@ -285,7 +290,8 @@ class MoviesViewSet(viewsets.GenericViewSet):
         """
         # Check input data
         required_fields = [variables.ACTOR_ID]
-        validator = InputDataValidator(request, required_fields=required_fields)
+        validator = InputDataValidator(
+            request, required_fields=required_fields)
         if not validator.validate():
             return Response(status=status.HTTP_400_BAD_REQUEST, data=variables.INVALID_INPUT_DATA)
 
@@ -304,10 +310,11 @@ class MoviesViewSet(viewsets.GenericViewSet):
                 data={variables.DETAILS: variables.ARTIST_NOT_FOUND},
                 status=status.HTTP_404_NOT_FOUND
             )
-        
+
         if not movie.actors.filter(pk=actor.pk).exists():
             return Response(
-                data={variables.DETAILS: "The selected actor is not one of the movie's actors"},
+                data={
+                    variables.DETAILS: "The selected actor is not one of the movie's actors"},
                 status=status.HTTP_404_NOT_FOUND
             )
 
@@ -351,7 +358,7 @@ class ArtistViewSet(viewsets.GenericViewSet):
         # Send data to serializer
         queryset = self.get_queryset()
         serializer = self.get_serializer_class()(queryset, many=True)
-        
+
         # Return Artists List
         return Response(
             data=serializer.data,
@@ -388,7 +395,7 @@ class ArtistViewSet(viewsets.GenericViewSet):
                 status=status.HTTP_404_NOT_FOUND
             )
         serializer = self.get_serializer(instance)
-        
+
         # Retrieve artist
         return Response(
             data=serializer.data,
@@ -412,15 +419,16 @@ class ArtistViewSet(viewsets.GenericViewSet):
             A response object containing the created artist details, HTTP status code.
         """
         # Check input data
-        required_fields = [variables.FULL_NAME, variables.COUNTRY, variables.DOB]
-        
+        required_fields = [variables.FULL_NAME,
+                           variables.COUNTRY, variables.DOB]
+
         if variables.COUNTRY in request.data:
             if not CountryValidator().is_valid(request.data[variables.COUNTRY]):
                 return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
-            
+
         if not InputDataValidator(request=request, required_fields=required_fields).validate():
             return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
-       
+
         # Send data to serializer
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
@@ -430,7 +438,7 @@ class ArtistViewSet(viewsets.GenericViewSet):
                 exception=True,
                 status=status.HTTP_400_BAD_REQUEST,
             )
-        
+
         # Create
         serializer.save()
         return Response(
@@ -461,8 +469,8 @@ class ArtistViewSet(viewsets.GenericViewSet):
         if variables.COUNTRY in request.data:
             if not CountryValidator().is_valid(request.data[variables.COUNTRY]):
                 return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
-            
-        partial=request.method==variables.PATCH
+
+        partial = request.method == variables.PATCH
         if partial:
             if not InputDataValidator(request=request, optional_fields=fields).validate():
                 return Response(status=status.HTTP_400_BAD_REQUEST, exception=True, data=variables.INVALID_INPUT_DATA)
@@ -477,14 +485,15 @@ class ArtistViewSet(viewsets.GenericViewSet):
                 data={variables.DETAILS: "Artist not found."},
                 status=status.HTTP_404_NOT_FOUND
             )
-        serializer = self.get_serializer(instance, data=request.data, partial=partial)
+        serializer = self.get_serializer(
+            instance, data=request.data, partial=partial)
         if not serializer.is_valid():
             return Response(
                 data={variables.DETAILS: serializer.errors},
                 status=status.HTTP_400_BAD_REQUEST,
                 exception=True
             )
-        
+
         # Update
         serializer.save()
         return Response(

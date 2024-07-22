@@ -1,7 +1,7 @@
 from django.db.models import QuerySet
 from rest_framework import serializers
 
-from .models import Movies, Artists
+from .models import Artists, Movies
 
 
 class MovieSerializer(serializers.ModelSerializer):
@@ -21,10 +21,10 @@ class MovieSerializer(serializers.ModelSerializer):
 
     def get_queryset() -> QuerySet:
         return Movies.objects.all()
-    
+
     def get_movie(pk) -> Movies:
         return Movies.objects.get(pk=pk)
-    
+
     class Meta:
         model = Movies
         fields = '__all__'
@@ -47,7 +47,7 @@ class ArtistSerializer(serializers.ModelSerializer):
 
     def get_queryset(self) -> QuerySet:
         return Artists.objects.all()
-    
+
     class Meta:
         model = Artists
         fields = '__all__'

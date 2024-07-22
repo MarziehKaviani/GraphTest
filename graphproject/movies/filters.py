@@ -1,10 +1,13 @@
 import django_filters
+
 from .models import Movies
 
 
 class MoviesFilter(django_filters.FilterSet):
-    director = django_filters.CharFilter(field_name='director__full_name', lookup_expr='icontains')
-    actors = django_filters.CharFilter(field_name='actors__full_name', method='filter_actors')
+    director = django_filters.CharFilter(
+        field_name='director__full_name', lookup_expr='icontains')
+    actors = django_filters.CharFilter(
+        field_name='actors__full_name', method='filter_actors')
 
     class Meta:
         model = Movies

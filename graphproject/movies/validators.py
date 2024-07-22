@@ -1,5 +1,5 @@
-import datetime
 import copy
+import datetime
 
 from django.core.validators import MaxValueValidator
 from django.http.request import QueryDict
@@ -26,7 +26,7 @@ class InputDataValidator:
         A dictionary to store the validated data.
     """
 
-    def __init__(self, request,  required_fields: list=None, optional_fields: list=None) -> None:
+    def __init__(self, request,  required_fields: list = None, optional_fields: list = None) -> None:
         """
         Initialize the InputDataValidator with request data, required fields, and optional fields.
 
@@ -38,7 +38,7 @@ class InputDataValidator:
             A list of required field names that must be present in the request data.
         optional_fields : list, optional
             A list of optional field names that should be present in the request data.
-        """ 
+        """
         self.request = request
         self.request_data: dict = copy.deepcopy(request.data)
         self.required_fields = required_fields
@@ -72,7 +72,7 @@ class InputDataValidator:
         for field in self.request.data:
             if field not in self.optional_fields:
                 return False
-            self.data[field] = self.request_data[field]  
+            self.data[field] = self.request_data[field]
             self.request_data.pop(field)
 
     def validate(self):
@@ -88,7 +88,7 @@ class InputDataValidator:
             self.check_required_fields()
         if self.optional_fields:
             self.check_optional_fields()
-        if self.request.data != self.data:  # If no input data accepted, the self.data will be empty just as expected 
+        if self.request.data != self.data:  # If no input data accepted, the self.data will be empty just as expected
             return False
         return True
 
@@ -139,6 +139,7 @@ class CountryValidator:
 
     This validator checks if a given country code is present in the list of ISO Alpha-2 country codes.
     """
+
     def is_valid(self, value):
         """
         Validate if the given country code is valid.

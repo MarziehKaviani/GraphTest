@@ -1,17 +1,20 @@
-from django.utils.deprecation import MiddlewareMixin
 from django.db.models import F
+from django.utils.deprecation import MiddlewareMixin
+
 from .models import EndpointCallCount
+
 
 class EndpointCallCountMiddleware(MiddlewareMixin):
     def process_response(self, request, response):
         path = self.normalize_path(request.path)
         method = request.method
-        
+
         if path:
-            endpoint_call, created = EndpointCallCount.objects.get_or_create(endpoint=path, method=method)
+            endpoint_call, created = EndpointCallCount.objects.get_or_create(
+                endpoint=path, method=method)
             endpoint_call.call_count = F('call_count') + 1
             endpoint_call.save()
-        
+
         return response
 
     def normalize_path(self, path):
@@ -20,4 +23,3 @@ class EndpointCallCountMiddleware(MiddlewareMixin):
             segments.pop()
         normalized_path = '/' + '/'.join(segments) + '/'
         return normalized_path
-

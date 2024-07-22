@@ -48,14 +48,14 @@ class Country:
         pd.DataFrame
             A DataFrame containing the filtered country data with columns 'Name' and 'IsoAlpha2'.
         """
-        global countries 
+        global countries
         if not isinstance(countries, pd.DataFrame):
             df = pd.read_csv(f'{settings.BASE_DIR}/assets/country_data.csv')
             df = df[df['isIndependent'] == 'Yes'][['Name', "IsoAlpha2"]]
             df.loc[df['Name'] == 'Namibia', 'IsoAlpha2'] = 'NA'
             countries = df
-        return countries 
-    
+        return countries
+
     def get_choices(self):
         """
         Generates a list of tuples containing ISO Alpha-2 codes and country names.
@@ -67,7 +67,6 @@ class Country:
         """
         global countries_choices
         if not countries_choices:
-            countries_choices = [(row['IsoAlpha2'], row['Name']) for _, row in self.countries_df.iterrows()]
+            countries_choices = [(row['IsoAlpha2'], row['Name'])
+                                 for _, row in self.countries_df.iterrows()]
         return countries_choices
-    
-

@@ -1,6 +1,6 @@
-from rest_framework.response import Response
-from rest_framework import viewsets, views
 from django.db import connection
+from rest_framework import views, viewsets
+from rest_framework.response import Response
 
 from .models import EndpointCallCount
 from .serializers import EndpointCallCountSerializer
@@ -17,12 +17,13 @@ class PostgresqlExtensionAPIView(views.APIView):
     -------
     get(request, *args, **kwargs)
         Handles GET requests and returns a list of installed PostgreSQL extensions with their versions.
-    
+
     Returns
     -------
     Response
         A Django Rest Framework Response object containing the list of installed extensions and their versions.
     """
+
     def get(self, request, *args, **kwargs):
         """
         Retrieve installed PostgreSQL extensions.
@@ -47,12 +48,12 @@ class PostgresqlExtensionAPIView(views.APIView):
             FROM 
                 pg_extension;
         """
-        
+
         # Execute the query
         with connection.cursor() as cursor:
             cursor.execute(query)
             rows = cursor.fetchall()
-        
+
         # Process the result
         extensions = []
         for row in rows:
@@ -61,9 +62,9 @@ class PostgresqlExtensionAPIView(views.APIView):
                 'version': row[1]
             }
             extensions.append(extension)
-        
+
         return Response({'extensions': extensions})
-    
+
 
 class EndpointCallCountViewSet(viewsets.ReadOnlyModelViewSet):
     """
